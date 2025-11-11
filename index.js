@@ -36,6 +36,7 @@ async function run() {
     // mongoDB collection and database
     const database = client.db("CarRental");
     const carsCollection = database.collection("cars");
+    const usersCollection = database.collection("users");
 
     // -------car related api-------
     // get all cars
@@ -116,6 +117,21 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await carsCollection.deleteOne(query);
       res.send(result);
+    });
+
+    // -----------users related api----------
+    // create user
+    app.post("/users", async (req, res) => {
+      const newUser = req.body;
+      const query = { email: newUser.email };
+      const checkUser = await usersCollection.findOne(query);
+      
+      if (checkUser) {
+        res.send({ massage: "Already exiting user!" });
+      } else {
+        const result = await usersCollection.insertOne(newUser);
+        res.send(result);
+      }
     });
   } finally {
     // await client.close();
