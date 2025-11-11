@@ -40,7 +40,47 @@ async function run() {
     // -------car related api-------
     // get all cars
     app.get("/cars", async (req, res) => {
-      const result = await carsCollection.find().toArray();
+      const { brand, sort, search } = req.query;
+
+      // category brand filter
+      const query = {};
+      if (brand) {
+        if (brand !== "All") {
+          query.category = brand;
+        }
+      }
+
+      // search cars
+      if (search) {
+        query.carName = { $regex: search, $options: "i" };
+      }
+
+      // sorted cars
+      const sorted = {};
+      if (sort) {
+        sort === "Price High"
+          ? (sorted.pricePerDay = -1)
+          : sort === "Price Low"
+          ? (sorted.pricePerDay = 1)
+          : sort === "Newest"
+          ? (sorted.created_at = -1)
+          : sort === "Oldest"
+          ? (sorted.created_at = 1)
+          : {};
+      }
+
+      const result = await carsCollection.find(query).sort(sorted).toArray();
+      res.send(result);
+    });
+
+    // get recent newest cars
+    app.get("/recent-cars", async (req, res) => {
+      const sorted = { created_at: -1 };
+      const result = await carsCollection
+        .find()
+        .sort(sorted)
+        .limit(6)
+        .toArray();
       res.send(result);
     });
 
