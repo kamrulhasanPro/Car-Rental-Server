@@ -37,6 +37,7 @@ async function run() {
     const database = client.db("CarRental");
     const carsCollection = database.collection("cars");
     const usersCollection = database.collection("users");
+    const bookingCollection = database.collection("bookingCar");
 
     // -------car related api-------
     // get all cars
@@ -119,13 +120,43 @@ async function run() {
       res.send(result);
     });
 
+    // -----------Booking car api-----------
+    // create booking
+    app.post("/booking-cars", async (req, res) => {
+      const newBookedCar = req.body;
+      const find = await bookingCollection.findOne({productId: newBookedCar.productId})
+      if(find){
+        return res.send('Already Booked Car.')
+      }
+      const result = await bookingCollection.insertOne(newBookedCar);
+      res.send(result);
+    });
+
+    // read booking
+    app.get("/booking-cars", async (req, res) => {
+      const { email } = req.query;
+      const query = {};
+      if (email) {
+        query.clientEmail = email;
+      }
+      const result = await bookingCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.delete("/booking-cars/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // -----------users related api----------
     // create user
     app.post("/users", async (req, res) => {
       const newUser = req.body;
       const query = { email: newUser.email };
       const checkUser = await usersCollection.findOne(query);
-      
+
       if (checkUser) {
         res.send({ massage: "Already exiting user!" });
       } else {
