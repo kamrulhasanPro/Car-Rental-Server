@@ -42,7 +42,7 @@ async function run() {
     // -------car related api-------
     // get all cars
     app.get("/cars", async (req, res) => {
-      const { brand, sort, search } = req.query;
+      const { brand, sort, search, email } = req.query;
 
       // category brand filter
       const query = {};
@@ -71,6 +71,10 @@ async function run() {
           : {};
       }
 
+      if (email) {
+        query.providerEmail = email;
+      }
+
       const result = await carsCollection.find(query).sort(sorted).toArray();
       res.send(result);
     });
@@ -86,6 +90,13 @@ async function run() {
       res.send(result);
     });
 
+    // get  top rated cars
+    app.get("/top-cars", async (req, res) => {
+      const query = { ratings: 5 };
+      const result = await carsCollection.find(query).limit(6).toArray();
+      res.send(result);
+    });
+
     // get specific car
     app.get("/cars/:id", async (req, res) => {
       const id = req.params.id;
@@ -96,9 +107,10 @@ async function run() {
 
     // car post api
     app.post("/cars", async (req, res) => {
-      const doc = req.body;
-      const result = await carsCollection.insertMany(doc);
-      res.send.apply(result);
+      const newCar = req.body;
+      // console.log(newCar);
+      const result = await carsCollection.insertOne(newCar);
+      res.send(result);
     });
 
     // car edit api
@@ -124,9 +136,11 @@ async function run() {
     // create booking
     app.post("/booking-cars", async (req, res) => {
       const newBookedCar = req.body;
-      const find = await bookingCollection.findOne({productId: newBookedCar.productId})
-      if(find){
-        return res.send('Already Booked Car.')
+      const find = await bookingCollection.findOne({
+        productId: newBookedCar.productId,
+      });
+      if (find) {
+        return res.send("Already Booked Car.");
       }
       const result = await bookingCollection.insertOne(newBookedCar);
       res.send(result);
@@ -139,7 +153,10 @@ async function run() {
       if (email) {
         query.clientEmail = email;
       }
-      const result = await bookingCollection.find(query).toArray();
+      const result = await bookingCollection
+        .find(query)
+        .sort({ bookingTime: -1 })
+        .toArray();
       res.send(result);
     });
 
