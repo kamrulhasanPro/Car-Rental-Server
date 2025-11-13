@@ -38,6 +38,7 @@ async function run() {
     const carsCollection = database.collection("cars");
     const usersCollection = database.collection("users");
     const bookingCollection = database.collection("bookingCar");
+    const feedbackCollection = database.collection("feedback");
 
     // -------car related api-------
     // get all cars
@@ -164,6 +165,13 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await bookingCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // -----------feedback api------------
+    // read feedback
+    app.get("/feedback", async (req, res) => {
+      const result = await feedbackCollection.find().toArray();
       res.send(result);
     });
 
