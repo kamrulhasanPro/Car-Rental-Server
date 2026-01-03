@@ -179,6 +179,7 @@ async function run() {
     // create user
     app.post("/users", async (req, res) => {
       const newUser = req.body;
+      newUser.role = "user";
       const query = { email: newUser.email };
       const checkUser = await usersCollection.findOne(query);
 
@@ -188,6 +189,25 @@ async function run() {
         const result = await usersCollection.insertOne(newUser);
         res.send(result);
       }
+    });
+
+    
+
+    //--------------- stats ---------------
+    app.get("/stats/:email", async (req, res) => {
+      const email = req.params.email;
+
+      // my booking
+      const bookingQuery = { clientEmail: email };
+      const myBookingStats = await bookingCollection.countDocuments(
+        bookingQuery
+      );
+
+      // my cars
+      const carsQuery = { providerEmail: email };
+      const myCars = await carsCollection.countDocuments(carsQuery);
+
+      return res.json({ myBookingStats, myCars });
     });
   } finally {
     // await client.close();
