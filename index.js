@@ -191,7 +191,12 @@ async function run() {
       }
     });
 
-    
+    app.patch("/user/:email", async (req, res) => {
+      const query = { email: req.params.email };
+      const update = { $set: req.body };
+      const result = await usersCollection.updateOne(query, update);
+      return res.json(result);
+    });
 
     //--------------- stats ---------------
     app.get("/stats/:email", async (req, res) => {
