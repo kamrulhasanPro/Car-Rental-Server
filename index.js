@@ -214,6 +214,67 @@ async function run() {
 
       return res.json({ myBookingStats, myCars });
     });
+
+    // --------rechart api-------
+    app.get("/chart-by-car", async (req, res) => {
+      const { email } = req.query;
+      try {
+        const result = await bookingCollection
+          .aggregate([
+            { $match: { clientEmail: email } },
+            {
+              $group: {
+                _id: "$carName",
+                pricePerDay: { $sum: "$pricePerDay" },
+                total: { $sum: 1 },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                carName: "$_id",
+                pricePerDay: 1,
+                total: 1,
+              },
+            },
+          ])
+          .toArray();
+
+        res.status(200).json(result);
+      } catch (error) {
+        console.error("Aggregation error:", error);
+        res.status(500).json({ message: "Failed to load chart data" });
+      }
+    });
+
+    app.get("/chart-by-category", async (req, res) => {
+      const { email } = req.query;
+      try {
+        const result = await carsCollection
+          .aggregate([
+            { $match: { providerEmail: email } },
+            {
+              $group: {
+                _id: "$category",
+                total: { $sum: 1 },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                category: "$_id",
+                total: 1,
+              },
+            },
+          ])
+          .toArray();
+
+        res.status(200).json(result);
+      } catch (error) {
+        console.error("Aggregation error:", error);
+        res.status(500).json({ message: "Failed to load chart data" });
+      }
+    });
   } finally {
     // await client.close();
   }
