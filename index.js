@@ -143,6 +143,7 @@ async function run() {
       if (find) {
         return res.send("Already Booked Car.");
       }
+      newBookedCar.pricePerDay = Number(newBookedCar.pricePerDay);
       const result = await bookingCollection.insertOne(newBookedCar);
       res.send(result);
     });
